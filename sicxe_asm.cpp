@@ -1,7 +1,7 @@
 /* Shad Aziz, Phillip Domann, Melanie Reed, Matt Walther
-   masc0832
+   masc0851
    Team Idaho
-   prog3
+   prog4
    CS530, Spring 2016
 */
 
@@ -114,7 +114,7 @@ unsigned int size_for_literal(string& str) {
 }
 
 // Converts an integer to a string
-string itos(int integer, int width) {
+string sicxe_asm::itos(int integer, int width) {
     stringstream itoss;
     itoss << setw(width) << setfill('0') << integer;
     return itoss.str();
@@ -455,7 +455,6 @@ string sicxe_asm::int_tohex_tostr(int r){ //converts int into hex, then into str
 int sicxe_asm::getDisplacement( int addr1, int addr2 ){
     int disp = addr1 - addr2;
     int baseDisp = addr1 - base_addr;
-    
     if ( disp >= -2048 && disp <= 2047 ){
         nixbpe |= 0x2;
         return disp;

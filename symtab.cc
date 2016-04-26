@@ -1,7 +1,7 @@
-/* Phillip Domann, Shad Aziz, Melanie Reed, Matt Walther
-   masc0832
+/* Shad Aziz, Phillip Domann, Melanie Reed, Matt Walther
+   masc0851
    Team Idaho
-   prog3
+   prog4
    CS530, Spring 2016
 */
 

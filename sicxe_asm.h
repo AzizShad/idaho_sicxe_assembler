@@ -1,7 +1,7 @@
 /* Shad Aziz, Phillip Domann, Melanie Reed, Matt Walther
-   masc0832
+   masc0851
    Team Idaho
-   prog3
+   prog4
    CS530, Spring 2016
 */
 
@@ -41,8 +41,8 @@ class sicxe_asm {
     map<string, struct sicxe_asm::hpair> hmap;
     vector<unsigned int> line_addrs;
     unsigned int index;
-    unsigned int locctr;
-    unsigned int base_addr;
+    int locctr;
+    int base_addr;
     bool noBase;
     int nixbpe;
     string label;
@@ -96,6 +96,7 @@ class sicxe_asm {
     struct symbol symtoval(string& symbol);
     bool islabel(string&);
     int hextoi(string str);
+    string itos(int integer, int width);
     bool isdecimal(string& str, size_t start, size_t end);
     int ctoi(string& str);
     bool isconstant(string& str);
