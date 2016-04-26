@@ -40,11 +40,3 @@ bool symtab::exists(string label){
 	else
 		return true;
 }
-
-// remove before submission
-void symtab::print() {
-    map<string, struct symbol>::iterator it;
-    for (it = symbol_table.begin(); it != symbol_table.end(); ++it) {
-        cout << it->first << " " << it->second.value << " " << it->second.isaddress << endl;
-    }
-}

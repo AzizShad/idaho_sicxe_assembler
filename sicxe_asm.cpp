@@ -225,7 +225,6 @@ void sicxe_asm::pass1() {
 }
 
 void sicxe_asm::pass2() {
-    symbols.print(); // remove before submission
     noBase = true;
     unsigned int nlines = (unsigned int)parser->size();
 
@@ -401,7 +400,7 @@ void sicxe_asm::handle_base() {
 
 void sicxe_asm::handle_nobase() {
     if (!operand.empty()) {
-        error_ln_str("Nobase directive does not use an operand");
+        error_ln_str("Nobase directive does not use an operand.");
     }
 }
 
@@ -535,33 +534,32 @@ void sicxe_asm::format3_objcode() {
     }
     string tempOperand = operand;
     int addressCode;
-    bool isX;
+    bool indexable;
     nixbpe = 0;
     try {
         //Checks whether it has a symbol infront and changes the flags accordingly
         if(tempOperand[0] == '@'){
             nixbpe |= 0x20;
-            isX = false;
+            indexable = false;
             tempOperand = tempOperand.substr(1,tempOperand.size()-1);
         }
         else if(tempOperand[0] == '#'){
             nixbpe |= 0x10;
-            isX = false;
+            indexable = false;
             tempOperand = tempOperand.substr(1,tempOperand.size()-1);
         }
         else{
-            nixbpe |= 0x20;
-            nixbpe |= 0x10;
-            isX = true;
+            nixbpe |= 0x30;
+            indexable = true;
         }
         //Checks if the operand has a X register then changes flags accordingly
         //If there is something else after the ',' then it throws an error
-        if(tempOperand.find(',') != -1){
+        if(tempOperand.find(',') != -1UL){
             string registerX = tempOperand.substr(tempOperand.find(',')+1,tempOperand.size()-1);
-            if((registerX == "X" || registerX == "x") && isX){
+            if((registerX == "X" || registerX == "x") && indexable){
                 nixbpe |= 0x8;
             }else if(!registerX.empty()){
-                error_ln_str("Only X register may be used for index addressing.");
+                error_ln_str("Index addressing can only use the X register.");
             }
         }
         string rand1 = tempOperand.substr(0, tempOperand.find(','));
@@ -585,44 +583,47 @@ void sicxe_asm::format3_objcode() {
 }
 
 void sicxe_asm::format4_objcode() {
-    string tempOpcode = opcode.substr(1,opcode.size()-1);
     string tempOperand = operand;
     int addressCode;
-    bool isX;
+    bool indexable;
     nixbpe = 0;
     try {
         nixbpe |= 0x1;
         if(tempOperand[0] == '@'){
-            if(!isalpha(tempOperand[1])){
-                throw;
-            }
             nixbpe |= 0x20;
-            isX = false;
+            indexable = false;
             tempOperand = tempOperand.substr(1,tempOperand.size()-1);
         }
         else if(tempOperand[0] == '#'){
             nixbpe |= 0x10;
-            isX = false;
+            indexable = false;
             tempOperand = tempOperand.substr(1,tempOperand.size()-1);
         }
         else{
             nixbpe |= 0x30;
-            isX = true;
+            indexable = true;
         }
-        if(tempOperand.find(',') != -1){
+        if(tempOperand.find(',') != -1UL){
             string registerX = tempOperand.substr(tempOperand.find(',')+1,tempOperand.size()-1);
-            if((registerX == "X" || registerX == "x") && isX){
+            if((registerX == "X" || registerX == "x") && indexable){
                 nixbpe |= 0x8;
-            } else if(!registerX.empty()){
-                throw;
+            }
+            else if (!indexable) {
+                error_ln_str("Indirect or Immediate addressing cannot be used with Index addressing.");
+            }
+            else {
+                error_ln_str("Index addressing can only use the X register.");
             }
         }
         
         string rand1 = tempOperand.substr(0, tempOperand.find(','));
         struct sicxe_asm::symbol sym = symtoval(rand1);
-		addressCode = sym.value & 0xFFFFF;
+        addressCode = sym.value;
+        if (addressCode > 1048575) {
+            error_ln_str("Operand address is greater than addressable range.");
+        }
         int instruction = 0;
-        instruction = hextoi(optab.get_machine_code(tempOpcode)) << 24;
+        instruction = hextoi(optab.get_machine_code(opcode)) << 24;
         instruction |= nixbpe << 20;
         instruction |= addressCode;
         objCode = itohexs(instruction, 8);

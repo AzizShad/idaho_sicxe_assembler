@@ -28,7 +28,6 @@ using namespace std;
   	void add(string, struct symbol);
  	struct symbol get(string);
  	bool exists(string);
-    void print(); //remove before submission
 
  private:
     map<string, struct symbol> symbol_table;
