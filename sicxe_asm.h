@@ -22,7 +22,7 @@ class sicxe_asm {
         bool isaddress;
         int value;
     };
-    
+    // Pass1 and 2 symbol handlers
     struct hpair {
         sym_handler pass1;
         sym_handler pass2;
@@ -38,7 +38,9 @@ class sicxe_asm {
     file_parser* parser;
     opcodetab optab;
     symtab symbols;
+    // Symbol handler map to lookup handlers
     map<string, struct sicxe_asm::hpair> hmap;
+    // Contains the address for each line
     vector<unsigned int> line_addrs;
     unsigned int index;
     int locctr;
@@ -61,8 +63,6 @@ class sicxe_asm {
     void setup_handler_map();
     // Retreives the symbol handler for the symbol
     sym_handler handler_for_symbol(bool pass);
-    sym_handler pass1_handler();
-    sym_handler pass2_handler();
     // Symbol handelers for instructions and directives
     void handle_instruction();
     void handle_start();
@@ -75,7 +75,7 @@ class sicxe_asm {
     void handle_base();
     void handle_nobase();
     void handle_empty();
-    
+    // Pass2 objcode generators
     void format1_objcode();
     void format2_objcode();
     void format3_objcode();
@@ -92,14 +92,16 @@ class sicxe_asm {
     void error_str(string msg);
     // Throws an error string also printing the line contents
     void error_ln_str(string msg);
-    
+    // Converts a label, numeric constant, or hex constant to a int
     struct symbol symtoval(string symbol);
     bool islabel(string&);
     int hextoi(string str);
     string itos(int integer, int width);
     bool isdecimal(string& str, size_t start, size_t end);
+    // Converts a numeric constant or hex constant to a int
     int ctoi(string& str);
     bool isconstant(string& str);
+    // Gets pc or base displacement setting flags
     int getDisplacement( int addr1, int addr2 );
     bool isformat3value(int value);
     bool isformat4value(int value);
@@ -113,11 +115,11 @@ public:
     sicxe_asm(string file);
     ~sicxe_asm();
     
-    // Assigns addresses to each line, adds labels and directives to the symbol
-    // table
+    // Assigns addresses to each line, adds labels and directives to the symtab
     void pass1();
+    // Generates objcode and writes line to listing file
     void pass2();
-    
+    // Writes the listing file to the filesystem
     void write_listing(string file);
     
 };

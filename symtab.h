@@ -18,19 +18,19 @@ using namespace std;
 
  class symtab {
  public:
-     
+     // Holds symbol value and if it is a constant or address
      struct symbol {
          bool isaddress;
          string value;
      };
-     
-    symtab();
-  	void add(string, struct symbol);
- 	struct symbol get(string);
- 	bool exists(string);
+	// Adds a symbol to the tab, checking if it already exists.
+	void add(string, struct symbol);
+    //Returns the symbol throwing an error if it does not exist.
+	struct symbol get(string);
 
  private:
-    map<string, struct symbol> symbol_table;
+	// Symbol tab and iterator
+	map<string, struct symbol> symbol_table;
 	map<string, struct symbol>::iterator symbol_iter;
  };
 

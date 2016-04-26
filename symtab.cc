@@ -11,9 +11,7 @@
 #include "symtab.h"
 #include "symtab_exception.h"
 
-using namespace std;	
-
-symtab::symtab(){}
+using namespace std;
 
 void symtab::add(string label, struct symbol value){
     transform(label.begin(), label.end(), label.begin(), ::toupper);
@@ -31,12 +29,4 @@ struct symtab::symbol symtab::get(string label){
 		throw symtab_exception("Label " + label + " does not exist");
 	 }
 	return symbol_iter->second;
-}
-	
-bool symtab::exists(string label){
-    transform(label.begin(), label.end(), label.begin(), ::toupper);
-	if ( symbol_table.find(label) == symbol_table.end() )
-		return false;
-	else
-		return true;
 }

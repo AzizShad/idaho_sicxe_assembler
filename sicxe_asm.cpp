@@ -260,7 +260,8 @@ void sicxe_asm::listing_head(string filename) {
 
 void sicxe_asm::listing_lnout() {
     listing << right << setw(5) << dec << index+1;
-    listing << "   " << setw(5) << hex << uppercase << setfill('0') << line_addrs.at(index);
+    listing << "   " << setw(5) << hex << uppercase;
+    listing << setfill('0') << line_addrs.at(index);
     listing << " " << left << setw(8) << setfill(' ') << label;
     listing << " " << setw(15) << opcode;
     listing << " " << setw(27) << operand;
@@ -504,7 +505,7 @@ void sicxe_asm::format2_objcode() {
             int tempint = str_toint(r2);
             tempint--;
             if (!(0 <= tempint && tempint <= 15)) {
-                error_ln_str("The number of bits to shift must be between 1 and 16.");
+            error_ln_str("The number of bits to shift must be between 1 and 16.");
             }
             string tempR2 = int_tohex_tostr(tempint);
             machine_code = op_machine_code + r1_value + tempR2;
@@ -536,38 +537,39 @@ void sicxe_asm::format3_objcode() {
         format4_objcode();
         return;
     }
-    string tempOperand = operand;
+    string tempOp = operand;
     int addressCode;
     bool indexable;
     nixbpe = 0;
-    if(tempOperand[0] == '@'){
+    if(tempOp[0] == '@'){
         nixbpe |= 0x20;
         indexable = false;
-        tempOperand = tempOperand.substr(1,tempOperand.size()-1);
+        tempOp = tempOp.substr(1,tempOp.size()-1);
     }
-    else if(tempOperand[0] == '#'){
+    else if(tempOp[0] == '#'){
         nixbpe |= 0x10;
         indexable = false;
-        tempOperand = tempOperand.substr(1,tempOperand.size()-1);
+        tempOp = tempOp.substr(1,tempOp.size()-1);
     }
     else{
         nixbpe |= 0x30;
         indexable = true;
     }
 
-    if(tempOperand.find(',') != -1UL){
-        string registerX = tempOperand.substr(tempOperand.find(',')+1,tempOperand.size()-1);
+    if(tempOp.find(',') != -1UL){
+        string registerX = tempOp.substr(tempOp.find(',')+1,tempOp.size()-1);
         if((registerX == "X" || registerX == "x") && indexable){
             nixbpe |= 0x8;
         }
         else if (!indexable) {
-            error_ln_str("Indirect or Immediate addressing cannot be used with Index addressing.");
+			error_ln_str("Indirect or Immediate addressing"
+                         "cannot be used with Index addressing.");
         }
         else {
             error_ln_str("Index addressing can only use the X register.");
         }
     }
-    string rand1 = tempOperand.substr(0, tempOperand.find(','));
+    string rand1 = tempOp.substr(0, tempOp.find(','));
     try {
         struct sicxe_asm::symbol sym = symtoval(rand1);
         if(!sym.isaddress){
@@ -590,39 +592,40 @@ void sicxe_asm::format3_objcode() {
 }
 
 void sicxe_asm::format4_objcode() {
-    string tempOperand = operand;
+    string tempOp = operand;
     int addressCode;
     bool indexable;
     nixbpe = 0;
     nixbpe |= 0x1;
-    if(tempOperand[0] == '@'){
+    if(tempOp[0] == '@'){
         nixbpe |= 0x20;
         indexable = false;
-        tempOperand = tempOperand.substr(1,tempOperand.size()-1);
+        tempOp = tempOp.substr(1,tempOp.size()-1);
     }
-    else if(tempOperand[0] == '#'){
+    else if(tempOp[0] == '#'){
         nixbpe |= 0x10;
     	indexable = false;
-        tempOperand = tempOperand.substr(1,tempOperand.size()-1);
+        tempOp = tempOp.substr(1,tempOp.size()-1);
     }
     else{
         nixbpe |= 0x30;
         indexable = true;
     }
-    if(tempOperand.find(',') != -1UL){
-        string registerX = tempOperand.substr(tempOperand.find(',')+1,tempOperand.size()-1);
+    if(tempOp.find(',') != -1UL){
+        string registerX = tempOp.substr(tempOp.find(',')+1,tempOp.size()-1);
         if((registerX == "X" || registerX == "x") && indexable){
             nixbpe |= 0x8;
         }
         else if (!indexable) {
-            error_ln_str("Indirect or Immediate addressing cannot be used with Index addressing.");
+            error_ln_str("Indirect or Immediate addressing"
+                         "cannot be used with Index addressing.");
         }
         else {
             error_ln_str("Index addressing can only use the X register.");
         }
     }
     
-    string rand1 = tempOperand.substr(0, tempOperand.find(','));
+    string rand1 = tempOp.substr(0, tempOp.find(','));
     try {
         struct sicxe_asm::symbol sym = symtoval(rand1);
         addressCode = sym.value;
