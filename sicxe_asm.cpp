@@ -538,7 +538,7 @@ void sicxe_asm::format3_objcode() {
         return;
     }
     string tempOp = operand;
-    int addressCode;
+    int addressCode = 0;
     bool indexable;
     nixbpe = 0;
     if(tempOp[0] == '@'){
@@ -593,7 +593,7 @@ void sicxe_asm::format3_objcode() {
 
 void sicxe_asm::format4_objcode() {
     string tempOp = operand;
-    int addressCode;
+    int addressCode = 0;
     bool indexable;
     nixbpe = 0;
     nixbpe |= 0x1;
