@@ -93,7 +93,7 @@ class sicxe_asm {
     // Throws an error string also printing the line contents
     void error_ln_str(string msg);
     
-    struct symbol symtoval(string& symbol);
+    struct symbol symtoval(string symbol);
     bool islabel(string&);
     int hextoi(string str);
     string itos(int integer, int width);
@@ -101,6 +101,9 @@ class sicxe_asm {
     int ctoi(string& str);
     bool isconstant(string& str);
     int getDisplacement( int addr1, int addr2 );
+    bool isformat3value(int value);
+    bool isformat4value(int value);
+    bool iswordvalue(int value);
     string get_reg_val(string);
     int str_toint(string);
     string int_tohex_tostr(int);
@@ -116,7 +119,6 @@ public:
     void pass2();
     
     void write_listing(string file);
-    void print_listing(); // remove before submission
     
 };
 

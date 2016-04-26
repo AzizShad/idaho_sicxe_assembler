@@ -18,9 +18,12 @@
 
 using namespace std;
 
-struct sicxe_asm::symbol sicxe_asm::symtoval(string& symbol) {
+struct sicxe_asm::symbol sicxe_asm::symtoval(string symbol) {
     if (islabel(symbol)) {
         struct symtab::symbol sym;
+        if (symbol.length() > 8) {
+            symbol.resize(8);
+        }
         sym = symbols.get(symbol);
         
         struct sicxe_asm::symbol rsym;
@@ -44,7 +47,6 @@ bool sicxe_asm::islabel(string& islab){
     return true;
 }
 
-// Converts a hex string to an integer value
 int sicxe_asm::hextoi(string str) {
     int integer;
     stringstream ss;
@@ -53,7 +55,6 @@ int sicxe_asm::hextoi(string str) {
     return integer;
 }
 
-// Checks that a string range contains only digits
 bool sicxe_asm::isdecimal(string& str, size_t start, size_t end) {
     for (size_t i = start; i < end; ++i) {
         if (!isdigit(str[i])) {
@@ -64,7 +65,6 @@ bool sicxe_asm::isdecimal(string& str, size_t start, size_t end) {
 }
 
 
-// Checks that a string range contains only hexadecimal digits
 bool ishexadecimal(string& str, size_t start, size_t end) {
     string upper = str;
     transform(upper.begin(),upper.end(), upper.begin(), ::toupper);
@@ -76,7 +76,6 @@ bool ishexadecimal(string& str, size_t start, size_t end) {
     return true;
 }
 
-// Verifies that a string contains vaild hex or decimal digits
 bool sicxe_asm::isconstant(string& str) {
     if (str.empty())
         return false;
@@ -85,17 +84,14 @@ bool sicxe_asm::isconstant(string& str) {
 }
 
 
-// Converts a string constant to an integer
 int sicxe_asm::ctoi(string& str) {
     return (str[0] == '$') ? hextoi(str.substr(1)): atoi(str.c_str());
 }
 
-// Verifies that a literal is quoted
 bool isquoted(string& str) {
     return ((str[1] == '\'') && (str[str.length()-1] == '\'')) ? true : false;
 }
 
-// Verifies that a string is a valid literal string
 bool isliteral(string& str) {
     if (str.empty() || str.length() < 3)
         return false;
@@ -107,13 +103,11 @@ bool isliteral(string& str) {
     return false;
 }
 
-// Returns the size for a quoted literal
 unsigned int size_for_literal(string& str) {
     return ((str[0] == 'c') || (str[0] == 'C')) ? (unsigned int)str.length()-3
     	: (unsigned int)(str.length()-3)>>1;
 }
 
-// Converts an integer to a string
 string sicxe_asm::itos(int integer, int width) {
     stringstream itoss;
     itoss << setw(width) << setfill('0') << integer;
@@ -126,13 +120,11 @@ string itohexs(int integer, int width) {
     return itoss.str();
 }
 
-// Searches for the start directive
 bool is_start( string opcode ){
     transform(opcode.begin(), opcode.end(), opcode.begin(), ::toupper);
     return ( opcode.compare("START") == 0 ? true : false );
 }
 
-// Searches for the end directive
 bool is_end( string opcode ){
     transform(opcode.begin(), opcode.end(), opcode.begin(), ::toupper);
     return ( opcode.compare("END") == 0 ? true : false );
@@ -243,11 +235,6 @@ void sicxe_asm::write_listing(string file) {
     listingStream.open(listingFile.c_str());
     listingStream << listing.str();
     listingStream.close();
-}
-
-// remove before submission
-void sicxe_asm::print_listing() {
-    cout << listing.str();
 }
 
 void sicxe_asm::get_tokens() {
@@ -422,7 +409,7 @@ void sicxe_asm::add_symbol_for_label() {
     }
 }
 
-string sicxe_asm::get_reg_val(string r){ // Return register number
+string sicxe_asm::get_reg_val(string r){
     int i = 0;
     while(r[i])	{
         r[i] = toupper(r[i]);
@@ -440,13 +427,13 @@ string sicxe_asm::get_reg_val(string r){ // Return register number
     else   return "";
 }
 
-int sicxe_asm::str_toint(string r){ // turns string into int
+int sicxe_asm::str_toint(string r){
     int tempint;
     istringstream(r) >> tempint;
     return tempint;
 }
 
-string sicxe_asm::int_tohex_tostr(int r){ //converts int into hex, then into string
+string sicxe_asm::int_tohex_tostr(int r){
     stringstream tempstr;
     tempstr << hex << uppercase << r;
     return tempstr.str();
@@ -464,6 +451,18 @@ int sicxe_asm::getDisplacement( int addr1, int addr2 ){
     }
     error_ln_str("Addressing displacement out of bounds, use format 4");
     return 0;
+}
+
+bool sicxe_asm::isformat3value(int value) {
+    return (0 <= value && value <= 4095)  ? true : false;
+}
+
+bool sicxe_asm::isformat4value(int value) {
+    return (0 <= value && value <= 1048575)  ? true : false;
+}
+
+bool sicxe_asm::iswordvalue(int value) {
+    return (0 <= value && value <= 16777215)  ? true : false;
 }
 
 void sicxe_asm::format1_objcode() {
@@ -487,41 +486,47 @@ void sicxe_asm::format2_objcode() {
         i++;
     }
     
-    if(r1 == ""){ // register 1 must exist or else error
-        error_str("Opcode " + opc + " has incorrect argument");
+    if(r1 == ""){
+        error_ln_str("Opcode " + opc + " has incorrect argument");
     }
     
     if(opc == "clear" || opc == "tixr") {
-        if(r1_value == "")   { // register 1 must have a value
-            error_str("Opcode " + opc + " has incorrect argument");
+        if(r1_value == "")   {
+            error_ln_str("Opcode " + opc + " has incorrect argument");
         }
         machine_code = op_machine_code + r1_value + "0";
     }
     else if (opc == "shiftl" || opc == "shiftr") {
         if(r2 == "" || r1_value == ""){
-            error_str("Opcode " + opc + " has incorrect argument");
+            error_ln_str("Opcode " + opc + " has incorrect argument");
         }
         else {
             int tempint = str_toint(r2);
             tempint--;
+            if (!(0 <= tempint && tempint <= 15)) {
+                error_ln_str("The number of bits to shift must be between 1 and 16.");
+            }
             string tempR2 = int_tohex_tostr(tempint);
             machine_code = op_machine_code + r1_value + tempR2;
         }
     }
     else if ( opc == "svc") {
         int tempint = str_toint(r1);
+        if (!(0 <= tempint && tempint <= 15)) {
+            error_ln_str("Interrupt number must be between 0 and 15.");
+        }
         string tempR1 = int_tohex_tostr(tempint);
         machine_code = op_machine_code + tempR1 + "0";
     }
     else	{
-        if(r2_value == "" || r1_value == "") { //register value nust exist
-            error_str("Opcode " + opc + " has incorrect argument");
+        if(r2_value == "" || r1_value == ""){
+            error_ln_str("Opcode " + opc + " has incorrect argument");
         }	
         else
             machine_code = op_machine_code + r1_value + r2_value;
     }
     if (machine_code == "")	{
-        error_str("Opcode " + opc + " does not exist"); 
+        error_ln_str("Opcode " + opc + " does not exist");
     }
     objCode = machine_code;
 }
@@ -535,50 +540,53 @@ void sicxe_asm::format3_objcode() {
     int addressCode;
     bool indexable;
     nixbpe = 0;
+    if(tempOperand[0] == '@'){
+        nixbpe |= 0x20;
+        indexable = false;
+        tempOperand = tempOperand.substr(1,tempOperand.size()-1);
+    }
+    else if(tempOperand[0] == '#'){
+        nixbpe |= 0x10;
+        indexable = false;
+        tempOperand = tempOperand.substr(1,tempOperand.size()-1);
+    }
+    else{
+        nixbpe |= 0x30;
+        indexable = true;
+    }
+
+    if(tempOperand.find(',') != -1UL){
+        string registerX = tempOperand.substr(tempOperand.find(',')+1,tempOperand.size()-1);
+        if((registerX == "X" || registerX == "x") && indexable){
+            nixbpe |= 0x8;
+        }
+        else if (!indexable) {
+            error_ln_str("Indirect or Immediate addressing cannot be used with Index addressing.");
+        }
+        else {
+            error_ln_str("Index addressing can only use the X register.");
+        }
+    }
+    string rand1 = tempOperand.substr(0, tempOperand.find(','));
     try {
-        //Checks whether it has a symbol infront and changes the flags accordingly
-        if(tempOperand[0] == '@'){
-            nixbpe |= 0x20;
-            indexable = false;
-            tempOperand = tempOperand.substr(1,tempOperand.size()-1);
-        }
-        else if(tempOperand[0] == '#'){
-            nixbpe |= 0x10;
-            indexable = false;
-            tempOperand = tempOperand.substr(1,tempOperand.size()-1);
-        }
-        else{
-            nixbpe |= 0x30;
-            indexable = true;
-        }
-        //Checks if the operand has a X register then changes flags accordingly
-        //If there is something else after the ',' then it throws an error
-        if(tempOperand.find(',') != -1UL){
-            string registerX = tempOperand.substr(tempOperand.find(',')+1,tempOperand.size()-1);
-            if((registerX == "X" || registerX == "x") && indexable){
-                nixbpe |= 0x8;
-            }else if(!registerX.empty()){
-                error_ln_str("Index addressing can only use the X register.");
-            }
-        }
-        string rand1 = tempOperand.substr(0, tempOperand.find(','));
         struct sicxe_asm::symbol sym = symtoval(rand1);
-        //gets address portion and checks if its a constant or an address.
         if(!sym.isaddress){
+            if (!isformat3value(sym.value)) {
+                error_ln_str("Operand value is greater than format 3 range.");
+            }
             addressCode = sym.value;
         }else{
             addressCode = getDisplacement(sym.value,line_addrs.at(index) + 3);
         }
-        
-        int instruction = 0;
-        instruction = hextoi(optab.get_machine_code(opcode)) << 16;
-        instruction |= nixbpe << 12;
-        instruction |= addressCode & 0xFFF;
-        objCode = itohexs(instruction, 6);
     }
-    catch (opcode_error_exception e) {
-        error_ln_str(e.getMessage());
+    catch (symtab_exception syme) {
+        error_ln_str(syme.getMessage());
     }
+    int instruction = 0;
+    instruction = hextoi(optab.get_machine_code(opcode)) << 16;
+    instruction |= nixbpe << 12;
+    instruction |= addressCode & 0xFFF;
+    objCode = itohexs(instruction, 6);
 }
 
 void sicxe_asm::format4_objcode() {
@@ -586,50 +594,50 @@ void sicxe_asm::format4_objcode() {
     int addressCode;
     bool indexable;
     nixbpe = 0;
+    nixbpe |= 0x1;
+    if(tempOperand[0] == '@'){
+        nixbpe |= 0x20;
+        indexable = false;
+        tempOperand = tempOperand.substr(1,tempOperand.size()-1);
+    }
+    else if(tempOperand[0] == '#'){
+        nixbpe |= 0x10;
+    	indexable = false;
+        tempOperand = tempOperand.substr(1,tempOperand.size()-1);
+    }
+    else{
+        nixbpe |= 0x30;
+        indexable = true;
+    }
+    if(tempOperand.find(',') != -1UL){
+        string registerX = tempOperand.substr(tempOperand.find(',')+1,tempOperand.size()-1);
+        if((registerX == "X" || registerX == "x") && indexable){
+            nixbpe |= 0x8;
+        }
+        else if (!indexable) {
+            error_ln_str("Indirect or Immediate addressing cannot be used with Index addressing.");
+        }
+        else {
+            error_ln_str("Index addressing can only use the X register.");
+        }
+    }
+    
+    string rand1 = tempOperand.substr(0, tempOperand.find(','));
     try {
-        nixbpe |= 0x1;
-        if(tempOperand[0] == '@'){
-            nixbpe |= 0x20;
-            indexable = false;
-            tempOperand = tempOperand.substr(1,tempOperand.size()-1);
-        }
-        else if(tempOperand[0] == '#'){
-            nixbpe |= 0x10;
-            indexable = false;
-            tempOperand = tempOperand.substr(1,tempOperand.size()-1);
-        }
-        else{
-            nixbpe |= 0x30;
-            indexable = true;
-        }
-        if(tempOperand.find(',') != -1UL){
-            string registerX = tempOperand.substr(tempOperand.find(',')+1,tempOperand.size()-1);
-            if((registerX == "X" || registerX == "x") && indexable){
-                nixbpe |= 0x8;
-            }
-            else if (!indexable) {
-                error_ln_str("Indirect or Immediate addressing cannot be used with Index addressing.");
-            }
-            else {
-                error_ln_str("Index addressing can only use the X register.");
-            }
-        }
-        
-        string rand1 = tempOperand.substr(0, tempOperand.find(','));
         struct sicxe_asm::symbol sym = symtoval(rand1);
         addressCode = sym.value;
-        if (addressCode > 1048575) {
-            error_ln_str("Operand address is greater than addressable range.");
+        if (!isformat4value(addressCode)) {
+            error_ln_str("Operand value is greater than format 4 range.");
         }
-        int instruction = 0;
-        instruction = hextoi(optab.get_machine_code(opcode)) << 24;
-        instruction |= nixbpe << 20;
-        instruction |= addressCode;
-        objCode = itohexs(instruction, 8);
     }
-    catch (opcode_error_exception e) {
-        error_ln_str(e.getMessage());
+    catch (symtab_exception syme) {
+        error_ln_str(syme.getMessage());
     }
+    int instruction = 0;
+    instruction = hextoi(optab.get_machine_code(opcode)) << 24;
+    instruction |= nixbpe << 20;
+    instruction |= addressCode;
+    objCode = itohexs(instruction, 8);
 }
 
 void sicxe_asm::byte_objcode() {
@@ -650,16 +658,26 @@ void sicxe_asm::byte_objcode() {
 
 void sicxe_asm::word_objcode() {
     int word = ctoi(operand);
+    if (!iswordvalue(word)) {
+        error_ln_str("Operand value is greater than word size.");
+    }
     objCode = itohexs(word, 6);
 }
 
 void sicxe_asm::set_base_address() {
     objCode.clear();
     noBase = false;
-    // check valid address
-    struct sicxe_asm::symbol bsymbol = symtoval(operand);
+    struct sicxe_asm::symbol bsymbol;
+    try {
+        bsymbol = symtoval(operand);
+    	if (!isformat4value(bsymbol.value)) {
+        	error_ln_str("Base address is out of range of addressable memory.");
+    	}
+    }
+    catch (symtab_exception syme) {
+        error_ln_str(syme.getMessage());
+    }
     base_addr = bsymbol.value;
-    cout << "base addr set to " << bsymbol.value << endl;
 }
 
 void sicxe_asm::set_nobase() {
@@ -682,7 +700,6 @@ int main(int argc, char* argv[]) {
     try {
     	assembler.pass1();
         assembler.pass2();
-        assembler.print_listing(); // remove before submission
         assembler.write_listing(string(argv[1]));
         return 0;
     }
